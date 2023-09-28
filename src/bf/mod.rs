@@ -3,27 +3,50 @@ use vm::*;
 
 /// Run the Brainf*ck code.
 pub fn run(code: &String) -> Result<(), Box<dyn std::error::Error + 'static>> {
-    let mut vm = VM::new();
+    let mut vm = match VM::new(){
+        Ok(vm) => vm,
+        Err(_) => return Err("Failed to form Virtual Memory. Compilation stopped.\n".into()),
+    };
     for c in code.chars() {
         match c {
-            '+' => vm.memory[vm.pointer]+=1,
-            '-' => vm.memory[vm.pointer]-=1,
-            '<' => vm.pointer-=1,
-            '>' => vm.pointer+=1,
-            '.' => print!("{}",vm.memory[vm.pointer]),
+            '+' => match vm.increment() {
+                Ok(()) => {},
+                Err(_) => return Err("Compilation stopped.\n".into()),
+            },
+
+            '-' => match vm.decrement() {
+                Ok(()) => {},
+                Err(_) => return Err("Compilation stopped.\n".into()),
+            },
+
+            '<' => match vm.left() {
+                Ok(()) => {},
+                Err(_) => return Err("Compilation stopped.\n".into()),
+            },
+
+            '>' => match vm.right() {
+                Ok(()) => {},
+                Err(_) => return Err("Compilation stopped.\n".into()),
+            },
+
+            '.' => print!("{}", vm.memory[vm.pointer]),
+
             ',' => match vm.input() {
                 Ok(()) => {},
-                Err(_) => return Err("Compilation stopped.".into()),
+                Err(_) => return Err("Compilation stopped.\n".into()),
             },
+
             '[' => match vm.jmp_forward(&code) {
                 Ok(()) => {},
-                Err(_) => return Err("Compilation stopped.".into()),
+                Err(_) => return Err("Compilation stopped.\n".into()),
             },
+
             ']' => match vm.jmp_backward(&code) {
                 Ok(()) => {},
-                Err(_) => return Err("Compilation stopped.".into()),
+                Err(_) => return Err("Compilation stopped.\n".into()),
             },
-            _ => {/* Do Nothing, illegal characters are just comments */},
+
+            _ => { /* Do Nothing, illegal characters are just comments */ },
         }
     }
     Ok(())
